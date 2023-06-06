@@ -1,0 +1,88 @@
+﻿@{
+    ViewData["Title"] = "Privacy Policy";
+}
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/signalr/dist/browser/signalr.min.js"></script>
+
+<h1>@ViewData["Title"]</h1>
+<div class="container">
+    <div class="row p-1">
+        <div class="col-1">Message</div>
+        <input type="text" id="input-data" />
+    </div>
+    <div class="row p-1">
+        <div class="col-6 text-end">
+            <input type="button" id="sendMsg1" value="Send" />
+        </div>
+    </div>
+    <div class="row p-1">
+        <div class="col-6">
+            <hr />
+        </div>
+    </div>
+    <div class="row p-1">
+        <div class="col-6">
+            <ul id="messagesList"></ul>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/recevieHub")
+        .withAutomaticReconnect()
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+   
+    connection.on("ReceiveData", function (message) {
+        var li = document.createElement("li");
+        document.getElementById("messagesList").appendChild(li);
+        li.textContent = `${message}`;
+    });
+
+    connection.on("ReceiveData1", function (message) {
+        var li = document.createElement("li");
+        document.getElementById("messagesList").appendChild(li);
+        li.textContent = `${message}`;
+    });
+
+    connection.onreconnecting((error) => {
+        console.log("SignalR reconnecting...", error);
+    });
+
+    connection.onreconnected((connectionId) => {
+        console.log("SignalR reconnected with connectionId:", connectionId);
+    });
+
+    function start() {
+        connection.start().then(function () {
+            console.log("SignalR链接成功");
+        }).catch((err) => {
+            console.error(err.toString());
+        });
+    }
+
+    start();
+
+    $("#sendMsg1").on("click", function () {
+        var connectionId = connection.connectionId;
+        var data = document.getElementById("input-data").value;
+
+        var sendparams = JSON.stringify({
+            connectionId: connectionId,
+            message: data
+        });
+
+        $.ajax({
+            url: "/Home/SendData",
+            contentType:"application/json",
+            data: sendparams,
+            type: "post",
+            dataType: "json",
+            success: function (res) {
+                console.log(res)
+            }
+        });
+    })
+</script>

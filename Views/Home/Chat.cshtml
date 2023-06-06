@@ -1,0 +1,82 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="container">
+    <div class="row p-1">
+        <div class="col-1">User</div>
+        <div class="col-5"><input type="text" id="userInput" disabled /></div>
+    </div>
+    <div class="row p-1">
+        <div class="col-1">Message</div>
+        <div class="col-5"><input type="text" class="w-100" id="messageInput" /></div>
+    </div>
+    <div class="row p-1">
+        <div class="col-6 text-end">
+            <input type="button" id="sendButton" value="Send Message" />
+        </div>
+    </div>
+    <div class="row p-1">
+        <div class="col-6">
+            <hr />
+        </div>
+    </div>
+    <div class="row p-1">
+        <div class="col-6">
+            <ul id="messagesList"></ul>
+        </div>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/signalr/dist/browser/signalr.min.js"></script>
+<script>
+    $(function () {
+        connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("ReceiveMessage", function (message) {
+            console.log(message);
+            sessionStorage.setItem("chatHub", connection.connectionId);
+            var li = document.createElement("li");
+            document.getElementById("messagesList").appendChild(li);
+            li.textContent = `${message}`;
+        });
+
+        connection.onreconnecting((error) => {
+            console.log("SignalR reconnecting...", error);
+        });
+
+        connection.onreconnected((connectionId) => {
+            console.log("SignalR reconnected with connectionId:", connectionId);
+        });
+
+        function start() {
+            connection.start().then(function () {
+                console.log("SignalR链接成功");
+                document.getElementById("userInput").value = connection.connectionId;
+
+                connection.invoke("JoinRoom", "ChatGroup").catch(function (err) {
+                    return console.error(err.toString());
+                });
+            }).catch(function (err) {
+                return console.error(err.toString());
+                setTimeout(() => start(), 5000); // 重新连接延时5秒
+            });
+        }
+
+        start();
+        document.getElementById("sendButton").addEventListener("click", function (event) {
+            var user = document.getElementById("userInput").value;
+            var message = document.getElementById("messageInput").value;
+            if (message) {
+                connection.invoke("SendMessage", "ChatGroup", message).catch(function (err) {
+                    return console.error(err.toString());
+                });
+                event.preventDefault();
+            }
+        });
+    })
+</script>
