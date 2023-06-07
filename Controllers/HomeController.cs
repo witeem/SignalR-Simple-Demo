@@ -36,7 +36,7 @@ namespace SignalR.Pro.Controllers
         [HttpPost]
         public async Task<IActionResult> SendData([FromBody] SendMsgDto dto)
         {
-            await _receiveHub.Clients.Client(dto.ConnectionId).SendAsync("ReceiveData", $"{dto.ConnectionId}: {dto.Message}");
+            await _receiveHub.Clients.Client(dto.ConnectionId).SendAsync("ReceiveMessage", $"{dto.ConnectionId}: {dto.Message}");
             _ = ReceiveData(dto.ConnectionId);
             return Ok("success");
         }
@@ -45,7 +45,7 @@ namespace SignalR.Pro.Controllers
         private async Task ReceiveData(string connectionId)
         {
             await Task.Delay(5000);
-            await _receiveHub.Clients.Client(connectionId).SendAsync("ReceiveData1", $"{connectionId}: 等你很久了.........");
+            await _receiveHub.Clients.Client(connectionId).SendAsync("ReceiveData", $"{connectionId}: 等你很久了.........");
         }
     }
 }

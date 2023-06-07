@@ -1,0 +1,10 @@
+﻿.chat {
+    border: 1px solid #ccc;
+    padding: 20px;
+    margin-top: 20px;
+    height: 400px;
+    overflow-y: scroll;
+}
+
+    .chat li {
+        list-style: none;

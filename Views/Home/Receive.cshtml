@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "ReceIve";
 }
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/js/signalr/dist/browser/signalr.min.js"></script>
@@ -7,12 +7,16 @@
 <h1>@ViewData["Title"]</h1>
 <div class="container">
     <div class="row p-1">
+        <div class="col-1">User</div>
+        <div class="col-5"><input type="text" id="userInput" disabled /></div>
+    </div>
+    <div class="row p-1">
         <div class="col-1">Message</div>
-        <input type="text" id="input-data" />
+        <div class="col-5"><input type="text" class="w-100" id="input-data" /></div>
     </div>
     <div class="row p-1">
         <div class="col-6 text-end">
-            <input type="button" id="sendMsg1" value="Send" />
+            <input type="button" id="sendMsg1" value="Send Message" />
         </div>
     </div>
     <div class="row p-1">
@@ -22,7 +26,7 @@
     </div>
     <div class="row p-1">
         <div class="col-6">
-            <ul id="messagesList"></ul>
+            <ul id="messagesRes"></ul>
         </div>
     </div>
 </div>
@@ -30,20 +34,20 @@
 <script>
 
     var connection = new signalR.HubConnectionBuilder()
-        .withUrl("/recevieHub")
+        .withUrl("/recevieHub?connectionId=userId")
         .withAutomaticReconnect()
         .configureLogging(signalR.LogLevel.Information)
         .build();
    
-    connection.on("ReceiveData", function (message) {
+    connection.on("ReceiveMessage", function (message) {
         var li = document.createElement("li");
-        document.getElementById("messagesList").appendChild(li);
+        document.getElementById("messagesRes").appendChild(li);
         li.textContent = `${message}`;
     });
 
-    connection.on("ReceiveData1", function (message) {
+    connection.on("ReceiveData", function (message) {
         var li = document.createElement("li");
-        document.getElementById("messagesList").appendChild(li);
+        document.getElementById("messagesRes").appendChild(li);
         li.textContent = `${message}`;
     });
 
@@ -68,15 +72,17 @@
     $("#sendMsg1").on("click", function () {
         var connectionId = connection.connectionId;
         var data = document.getElementById("input-data").value;
+        //connection.invoke("SendMessage", data).catch(function (err) {
+        //    return console.error(err.toString());
+        //});
 
         var sendparams = JSON.stringify({
             connectionId: connectionId,
             message: data
         });
-
         $.ajax({
             url: "/Home/SendData",
-            contentType:"application/json",
+            contentType: "application/json",
             data: sendparams,
             type: "post",
             dataType: "json",
@@ -84,5 +90,6 @@
                 console.log(res)
             }
         });
+
     })
 </script>
